@@ -86,13 +86,8 @@ df = df.dropna()
 X = np.array(df["descriptors"].tolist())
 y = 0.4*X[:,1] + 0.3*(200-abs(X[:,0]-180))/200 + 0.2*(50-abs(X[:,2]-30))/50 + np.random.normal(0,0.03,len(X))
 
-rf = RandomForestRegressor(n_estimators=150)
-gb = GradientBoostingRegressor()
-et = ExtraTreesRegressor(n_estimators=150)
-
-rf.fit(X,y)
-gb.fit(X,y)
-et.fit(X,y)
+weights = np.random.rand(len(df))
+df["score"] = weights
 
 preference_boost = {
     "sweet": ["vanillin","ethyl maltol","maltol","coumarin"],
