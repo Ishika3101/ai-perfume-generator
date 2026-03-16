@@ -1,10 +1,6 @@
-
 import pandas as pd
 import numpy as np
 import difflib
-import base64
-from io import BytesIO
-
 
 np.random.seed(42)
 
@@ -12,11 +8,9 @@ note_structure = {
     "top": [
         "limonene","citral","linalool","citronellol","menthol"
     ],
-
     "heart": [
         "geraniol","phenylethyl alcohol","anisaldehyde","eugenol","isoeugenol"
     ],
-
     "base": [
         "vanillin","coumarin","benzyl acetate","cashmeran","ambroxide","cedrol","vetiverol"
     ]
@@ -77,15 +71,6 @@ ingredient_data = [
 df = pd.DataFrame(ingredient_data, columns=["Name","SMILES"])
 df["Name"] = df["Name"].str.lower()
 
-df["descriptors"] = np.random.rand(len(df),3).tolist()
-df = df.dropna()
-
-X = np.array(df["descriptors"].tolist())
-y = 0.4*X[:,1] + 0.3*(200-abs(X[:,0]-180))/200 + 0.2*(50-abs(X[:,2]-30))/50 + np.random.normal(0,0.03,len(X))
-
-weights = np.random.rand(len(df))
-df["score"] = weights
-
 preference_boost = {
     "sweet": ["vanillin","ethyl maltol","maltol","coumarin"],
     "fresh": ["limonene","linalool","citronellol"],
@@ -108,24 +93,17 @@ def generate_perfume(ingredients_input, preference):
 
     selected = df[df["Name"].isin(corrected)]
 
-    user_features = np.array(selected["descriptors"].tolist())
+    if selected.empty:
+        return {"formula": [], "pyramid": {"top": [], "heart": [], "base": []}}
 
-    boost = np.array([
-        1.2 if ing in preference_boost[preference] else 1.0
-        for ing in selected["Name"]
-    ])
+    weights = np.random.rand(len(selected))
+    weights = weights / weights.sum()
 
-    pred = (rf.predict(user_features) + gb.predict(user_features) + et.predict(user_features)) / 3
+    for i, ing in enumerate(selected["Name"]):
+        if preference in preference_boost and ing in preference_boost[preference]:
+            weights[i] *= 1.2
 
-    def objective(weights):
-        weights = weights / weights.sum()
-        score = np.dot(weights, pred * boost)
-        penalty = 5 if np.max(weights) > 0.6 or np.min(weights) < 0.15 else 0
-        return -(score - penalty)
-
-    result = differential_evolution(objective, [(1,10)]*len(selected), seed=42)
-
-    weights = result.x / result.x.sum()
+    weights = weights / weights.sum()
 
     formula = []
 
@@ -136,16 +114,6 @@ def generate_perfume(ingredients_input, preference):
             "ml": float(w * 50)
         })
 
-    # Create Pie Chart
-    plt.figure(figsize=(5,5))
-    plt.pie(weights, labels=selected["Name"], autopct='%1.1f%%')
-
-    buffer = BytesIO()
-    plt.savefig(buffer, format="png")
-    buffer.seek(0)
-
-    chart = base64.b64encode(buffer.read()).decode("utf-8")
-
     top_notes = []
     heart_notes = []
     base_notes = []
@@ -153,16 +121,13 @@ def generate_perfume(ingredients_input, preference):
     for ing in selected["Name"]:
         if ing in note_structure["top"]:
             top_notes.append(ing)
-
         elif ing in note_structure["heart"]:
             heart_notes.append(ing)
-
         else:
             base_notes.append(ing)
 
     return {
         "formula": formula,
-        "chart": chart,
         "pyramid": {
             "top": top_notes,
             "heart": heart_notes,
