@@ -1,13 +1,10 @@
-import matplotlib
-matplotlib.use("Agg")
+
 import pandas as pd
 import numpy as np
 import difflib
-from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, ExtraTreesRegressor
-from scipy.optimize import differential_evolution
 import base64
 from io import BytesIO
-import matplotlib.pyplot as plt
+
 
 np.random.seed(42)
 
