@@ -3,8 +3,6 @@ matplotlib.use("Agg")
 import pandas as pd
 import numpy as np
 import difflib
-from rdkit import Chem
-from rdkit.Chem import Descriptors
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, ExtraTreesRegressor
 from scipy.optimize import differential_evolution
 import base64
