@@ -259,7 +259,7 @@ export default function PerfumeLab() {
     setLoading(true)
 
     try {
-      const response = await fetch("http://localhost:8000/generate", {
+      const response = await fetch("https://ai-perfume-generator-5.onrender.com/generate", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
